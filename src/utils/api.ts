@@ -8,59 +8,43 @@ const MU_FACTOR = 1_000_000;
 
 // Use the active RPC provider for API requests
 async function makeAPIRequest(endpoint: string, options: RequestInit = {}): Promise<Response> {
+  const provider = getActiveRPCProvider();
+  
+  if (!provider) {
+    throw new Error('No RPC provider available');
+  }
+  
+  console.log(`Making API request to: ${provider.url}${endpoint}`);
+  
   // Check if we're in development mode
   const isDevelopment = import.meta.env.DEV;
   
+  let url: string;
+  let headers: Record<string, string>;
+  
   if (isDevelopment) {
-    // In development, use Vite proxy
-    const provider = getActiveRPCProvider();
-    
-    if (!provider) {
-      throw new Error('No RPC provider available');
-    }
-    
-    console.log(`Making API request to: ${provider.url}${endpoint} via proxy`);
-    
-    // Use /api prefix for Vite proxy
-    const url = `/api${endpoint}`;
-    
-    // Merge headers from RPC provider configuration + add RPC URL for dynamic proxy
-    const headers = {
+    // In development, use Vite proxy with custom header
+    url = `/api${endpoint}`;
+    headers = {
       'Content-Type': 'application/json',
-      'X-RPC-URL': provider.url, // Custom header for dynamic proxy
+      'X-RPC-URL': provider.url,
       ...provider.headers,
       ...options.headers
     };
-    
-    return fetch(url, {
-      ...options,
-      headers
-    });
   } else {
-    // In production, make direct requests (CORS should be handled by server)
-    const provider = getActiveRPCProvider();
-    
-    if (!provider) {
-      throw new Error('No RPC provider available');
-    }
-    
-    console.log(`Making direct API request to: ${provider.url}${endpoint}`);
-    
-    // Construct full URL using the active RPC provider
-    const url = `${provider.url}${endpoint}`;
-    
-    // Merge headers from RPC provider configuration
-    const headers = {
+    // In production, make direct requests
+    url = `${provider.url}${endpoint}`;
+    headers = {
       'Content-Type': 'application/json',
       ...provider.headers,
       ...options.headers
     };
-    
-    return fetch(url, {
-      ...options,
-      headers
-    });
   }
+  
+  return fetch(url, {
+    ...options,
+    headers
+  });
 }
 
 export async function fetchBalance(address: string): Promise<BalanceResponse> {
