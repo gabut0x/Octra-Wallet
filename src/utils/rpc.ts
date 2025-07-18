@@ -5,9 +5,11 @@ export function getActiveRPCProvider(): RPCProvider | null {
   const activeProvider = providers.find((p: RPCProvider) => p.isActive);
   
   if (activeProvider) {
+    console.log('Using active RPC provider:', activeProvider.name, activeProvider.url);
     return activeProvider;
   }
   
+  console.log('Using default RPC provider');
   // Return default if no active provider
   return {
     id: 'default',

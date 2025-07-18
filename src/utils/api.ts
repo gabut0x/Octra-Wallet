@@ -19,6 +19,8 @@ async function makeAPIRequest(endpoint: string, options: RequestInit = {}): Prom
       throw new Error('No RPC provider available');
     }
     
+    console.log(`Making API request to: ${provider.url}${endpoint} via proxy`);
+    
     // Use /api prefix for Vite proxy
     const url = `/api${endpoint}`;
     
@@ -41,6 +43,8 @@ async function makeAPIRequest(endpoint: string, options: RequestInit = {}): Prom
     if (!provider) {
       throw new Error('No RPC provider available');
     }
+    
+    console.log(`Making direct API request to: ${provider.url}${endpoint}`);
     
     // Construct full URL using the active RPC provider
     const url = `${provider.url}${endpoint}`;

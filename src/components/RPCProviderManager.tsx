@@ -180,9 +180,15 @@ export function RPCProviderManager({ onClose }: RPCProviderManagerProps) {
       isActive: p.id === providerId
     }));
     saveProviders(updatedProviders);
+    
+    // Force reload the page to ensure new RPC provider is used
+    setTimeout(() => {
+      window.location.reload();
+    }, 1000);
+    
     toast({
       title: "Primary Provider Set",
-      description: "RPC provider has been set as primary",
+      description: "RPC provider has been set as primary. Page will reload to apply changes.",
     });
   };
 
