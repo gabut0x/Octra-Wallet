@@ -87,6 +87,7 @@ export function WalletDashboard({
   const [isRefreshingData, setIsRefreshingData] = useState(false);
   const [encryptedBalance, setEncryptedBalance] = useState<any>(null);
   const [hasInitializedOverview, setHasInitializedOverview] = useState(false);
+  const [shouldFetchBalance, setShouldFetchBalance] = useState(true);
   const { toast } = useToast();
 
   // Initial data fetch when wallet is connected or when switching to overview tab
@@ -94,10 +95,13 @@ export function WalletDashboard({
     const fetchInitialData = async () => {
       if (!wallet) return;
       
-      // Only fetch if we haven't initialized overview yet or if we're on overview tab
-      if (activeTab !== 'overview' && hasInitializedOverview) {
+      // Only fetch if we should fetch and we're on overview tab
+      if (activeTab !== 'overview' || !shouldFetchBalance) {
         return;
       }
+
+      console.log('Fetching initial data for overview tab');
+      setShouldFetchBalance(false); // Prevent further fetches
 
       try {
         // Fetch balance and nonce
@@ -140,12 +144,17 @@ export function WalletDashboard({
       }
     };
 
-    // Only fetch data when wallet changes or when switching to overview tab for the first time
-    if (activeTab === 'overview' && (!hasInitializedOverview || !balance)) {
+    // Only fetch data when we should fetch
+    if (shouldFetchBalance && activeTab === 'overview') {
       fetchInitialData();
-      setHasInitializedOverview(true);
     }
-  }, [wallet, activeTab, hasInitializedOverview, balance, toast]);
+  }, [wallet, activeTab, shouldFetchBalance, toast]);
+
+  // Reset fetch flag when wallet changes
+  useEffect(() => {
+    setShouldFetchBalance(true);
+    setHasInitializedOverview(false);
+  }, [wallet.address]);
 
   // Function to refresh all wallet data
   const refreshWalletData = async () => {
@@ -401,7 +410,7 @@ export function WalletDashboard({
         
         // Mark that we need to refresh overview data when user switches back
         if (activeTab !== 'overview') {
-          setHasInitializedOverview(false);
+          setShouldFetchBalance(true);
         }
       } catch (error) {
         console.error('Failed to refresh data after transaction:', error);
@@ -834,6 +843,7 @@ export function WalletDashboard({
               onEncryptedBalanceUpdate={setEncryptedBalance}
               onBalanceUpdate={handleBalanceUpdate}
               isLoading={isLoadingBalance || isRefreshingData}
+              disableAutoFetch={true}
             />
           </TabsContent>
 

@@ -19,9 +19,10 @@ interface BalanceProps {
   onEncryptedBalanceUpdate?: (encryptedBalance: any) => void;
   onBalanceUpdate: (balance: number) => void;
   isLoading?: boolean;
+  disableAutoFetch?: boolean;
 }
 
-export function Balance({ wallet, balance, encryptedBalance: propEncryptedBalance, onEncryptedBalanceUpdate, onBalanceUpdate, isLoading = false }: BalanceProps) {
+export function Balance({ wallet, balance, encryptedBalance: propEncryptedBalance, onEncryptedBalanceUpdate, onBalanceUpdate, isLoading = false, disableAutoFetch = false }: BalanceProps) {
   const [refreshing, setRefreshing] = useState(false);
   const [showPrivateKey, setShowPrivateKey] = useState(false);
   const [localEncryptedBalance, setLocalEncryptedBalance] = useState<any>(null);
@@ -138,7 +139,8 @@ export function Balance({ wallet, balance, encryptedBalance: propEncryptedBalanc
 
   // Initial fetch of encrypted balance
   useEffect(() => {
-    if (wallet) {
+    if (wallet && !disableAutoFetch) {
+      console.log('Balance component: Fetching encrypted balance');
       // Fetch balance first to check RPC connectivity
       fetchBalance(wallet.address)
         .then(balanceData => {
@@ -203,7 +205,7 @@ export function Balance({ wallet, balance, encryptedBalance: propEncryptedBalanc
           setPendingTransfers([]);
         });
     }
-  }, [wallet, onBalanceUpdate]);
+  }, [wallet, onBalanceUpdate, disableAutoFetch]);
 
   const copyToClipboard = async (text: string, label: string) => {
     try {
