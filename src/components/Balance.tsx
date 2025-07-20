@@ -31,6 +31,9 @@ export function Balance({ wallet, balance, encryptedBalance: propEncryptedBalanc
   const [showDecryptDialog, setShowDecryptDialog] = useState(false);
   const { toast } = useToast();
 
+  // Track if we've already fetched data for this wallet to prevent continuous fetching
+  const [hasFetchedForWallet, setHasFetchedForWallet] = useState<string | null>(null);
+
   // Use prop encrypted balance if provided, otherwise use local state
   const encryptedBalance = propEncryptedBalance || localEncryptedBalance;
   const setEncryptedBalance = onEncryptedBalanceUpdate || setLocalEncryptedBalance;
@@ -137,10 +140,13 @@ export function Balance({ wallet, balance, encryptedBalance: propEncryptedBalanc
     }
   };
 
-  // Initial fetch of encrypted balance
+  // Initial fetch of encrypted balance - only once per wallet
   useEffect(() => {
-    if (wallet) {
+    // Only fetch if we haven't fetched for this wallet yet and auto-fetch is not disabled
+    if (wallet && hasFetchedForWallet !== wallet.address && !disableAutoFetch) {
       console.log('Balance component: Fetching encrypted balance');
+      setHasFetchedForWallet(wallet.address); // Mark as fetched to prevent re-fetching
+      
       // Fetch balance first to check RPC connectivity
       fetchBalance(wallet.address)
         .then(balanceData => {
@@ -207,7 +213,14 @@ export function Balance({ wallet, balance, encryptedBalance: propEncryptedBalanc
           setPendingTransfers([]);
         });
     }
-  }, [wallet, onBalanceUpdate, disableAutoFetch, setEncryptedBalance]);
+  }, [wallet?.address, hasFetchedForWallet, disableAutoFetch, onBalanceUpdate, setEncryptedBalance]);
+
+  // Reset fetch tracking when wallet changes
+  useEffect(() => {
+    if (wallet) {
+      setHasFetchedForWallet(null);
+    }
+  }, [wallet?.address]);
 
   const copyToClipboard = async (text: string, label: string) => {
     try {

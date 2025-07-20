@@ -90,18 +90,18 @@ export function WalletDashboard({
   const [shouldFetchBalance, setShouldFetchBalance] = useState(true);
   const { toast } = useToast();
 
-  // Initial data fetch when wallet is connected or when switching to overview tab
+  // Initial data fetch - only when explicitly needed
   useEffect(() => {
     const fetchInitialData = async () => {
       if (!wallet) return;
       
-      // Only fetch if we should fetch and we're on overview tab
-      if (activeTab !== 'overview' || !shouldFetchBalance) {
+      // Only fetch if we should fetch, we're on overview tab, and not already loading
+      if (activeTab !== 'overview' || !shouldFetchBalance || isLoadingBalance) {
         return;
       }
 
       console.log('Fetching initial data for overview tab');
-      setShouldFetchBalance(false); // Prevent further fetches
+      setShouldFetchBalance(false); // Prevent further fetches until explicitly triggered
 
       try {
         // Fetch balance and nonce
@@ -144,11 +144,11 @@ export function WalletDashboard({
       }
     };
 
-    // Only fetch data when we should fetch
-    if (shouldFetchBalance && activeTab === 'overview') {
+    // Only fetch data when explicitly needed
+    if (shouldFetchBalance && activeTab === 'overview' && !isLoadingBalance) {
       fetchInitialData();
     }
-  }, [wallet, activeTab, shouldFetchBalance, toast]);
+  }, [wallet.address, activeTab, shouldFetchBalance, isLoadingBalance, toast]);
 
   // Reset fetch flag when wallet changes
   useEffect(() => {
@@ -157,14 +157,6 @@ export function WalletDashboard({
     // Reset encrypted balance when wallet changes
     setEncryptedBalance(null);
   }, [wallet.address]);
-
-  // Trigger data fetch when Overview tab is clicked
-  useEffect(() => {
-    if (activeTab === 'overview' && !shouldFetchBalance) {
-      console.log('Overview tab clicked, refreshing data');
-      setShouldFetchBalance(true);
-    }
-  }, [activeTab]);
 
   // Function to refresh all wallet data
   const refreshWalletData = async () => {
