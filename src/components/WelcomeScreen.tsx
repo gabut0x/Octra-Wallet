@@ -25,8 +25,17 @@ export function WelcomeScreen({ onWalletCreated }: WelcomeScreenProps) {
   };
 
   const handleWalletGenerated = (wallet: Wallet) => {
-    setPendingWallet(wallet);
-    setShowPasswordSetup(true);
+    // Check if password protection is already set up
+    const hasPassword = localStorage.getItem('walletPasswordHash');
+    
+    if (hasPassword) {
+      // Password protection already exists, add wallet directly
+      onWalletCreated(wallet);
+    } else {
+      // No password protection, show password setup
+      setPendingWallet(wallet);
+      setShowPasswordSetup(true);
+    }
   };
 
   const handlePasswordSet = (wallet: Wallet) => {

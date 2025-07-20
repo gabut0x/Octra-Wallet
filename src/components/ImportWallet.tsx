@@ -53,6 +53,9 @@ export function ImportWallet({ onWalletImported }: ImportWalletProps) {
         title: "Success!",
         description: "Wallet imported successfully",
       });
+      
+      // Reset form
+      setPrivateKey('');
     } catch (error) {
       toast({
         title: "Error",
@@ -96,6 +99,9 @@ export function ImportWallet({ onWalletImported }: ImportWalletProps) {
         title: "Success!",
         description: "Wallet imported successfully",
       });
+      
+      // Reset form
+      setMnemonic('');
     } catch (error) {
       toast({
         title: "Error",

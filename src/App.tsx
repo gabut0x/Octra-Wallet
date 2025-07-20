@@ -294,6 +294,23 @@ function App() {
     localStorage.setItem('wallets', JSON.stringify(updatedWallets));
     localStorage.setItem('activeWalletId', newWallet.address);
     
+    // Trigger storage events for cross-tab synchronization
+    setTimeout(() => {
+      window.dispatchEvent(new StorageEvent('storage', {
+        key: 'wallets',
+        oldValue: JSON.stringify(wallets),
+        newValue: JSON.stringify(updatedWallets),
+        storageArea: localStorage
+      }));
+      
+      window.dispatchEvent(new StorageEvent('storage', {
+        key: 'activeWalletId',
+        oldValue: wallet?.address || null,
+        newValue: newWallet.address,
+        storageArea: localStorage
+      }));
+    }, 50);
+    
     // Also save to encrypted storage if password protection is enabled
     const hasPassword = localStorage.getItem('walletPasswordHash');
     if (hasPassword) {

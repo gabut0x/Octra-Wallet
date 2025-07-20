@@ -139,7 +139,7 @@ export function Balance({ wallet, balance, encryptedBalance: propEncryptedBalanc
 
   // Initial fetch of encrypted balance
   useEffect(() => {
-    if (wallet && !disableAutoFetch) {
+    if (wallet) {
       console.log('Balance component: Fetching encrypted balance');
       // Fetch balance first to check RPC connectivity
       fetchBalance(wallet.address)
@@ -156,8 +156,10 @@ export function Balance({ wallet, balance, encryptedBalance: propEncryptedBalanc
             });
             setPendingTransfers([]);
           } else {
-            // Update public balance immediately
-            onBalanceUpdate(balanceData.balance);
+            // Update public balance immediately only if not disabled
+            if (!disableAutoFetch) {
+              onBalanceUpdate(balanceData.balance);
+            }
             
             // RPC works, fetch encrypted balance
             return fetchEncryptedBalance(wallet.address, wallet.privateKey)
@@ -205,7 +207,7 @@ export function Balance({ wallet, balance, encryptedBalance: propEncryptedBalanc
           setPendingTransfers([]);
         });
     }
-  }, [wallet, onBalanceUpdate, disableAutoFetch]);
+  }, [wallet, onBalanceUpdate, disableAutoFetch, setEncryptedBalance]);
 
   const copyToClipboard = async (text: string, label: string) => {
     try {

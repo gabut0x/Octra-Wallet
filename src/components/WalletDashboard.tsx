@@ -154,7 +154,17 @@ export function WalletDashboard({
   useEffect(() => {
     setShouldFetchBalance(true);
     setHasInitializedOverview(false);
+    // Reset encrypted balance when wallet changes
+    setEncryptedBalance(null);
   }, [wallet.address]);
+
+  // Trigger data fetch when Overview tab is clicked
+  useEffect(() => {
+    if (activeTab === 'overview' && !shouldFetchBalance) {
+      console.log('Overview tab clicked, refreshing data');
+      setShouldFetchBalance(true);
+    }
+  }, [activeTab]);
 
   // Function to refresh all wallet data
   const refreshWalletData = async () => {
@@ -371,10 +381,22 @@ export function WalletDashboard({
 
   const handleBalanceUpdate = async (newBalance: number) => {
     setBalance(newBalance);
-    // Also refresh nonce when balance is updated
+    // Also refresh nonce and encrypted balance when balance is updated
     try {
       const balanceData = await fetchBalance(wallet.address);
       setNonce(balanceData.nonce);
+      
+      // Refresh encrypted balance as well
+      const encData = await fetchEncryptedBalance(wallet.address, wallet.privateKey);
+      if (encData) {
+        const updatedEncData = {
+          ...encData,
+          public: newBalance,
+          public_raw: Math.floor(newBalance * 1_000_000),
+          total: newBalance + encData.encrypted
+        };
+        setEncryptedBalance(updatedEncData);
+      }
     } catch (error) {
       console.error('Failed to refresh nonce:', error);
     }
@@ -843,7 +865,7 @@ export function WalletDashboard({
               onEncryptedBalanceUpdate={setEncryptedBalance}
               onBalanceUpdate={handleBalanceUpdate}
               isLoading={isLoadingBalance || isRefreshingData}
-              disableAutoFetch={true}
+              disableAutoFetch={false}
             />
           </TabsContent>
 
