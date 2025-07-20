@@ -359,9 +359,9 @@ export function PrivateTransfer({ wallet, onTransactionSuccess }: PrivateTransfe
                 <div className="text-sm text-red-600">{resolutionError}</div>
               )}
               
-              {/* {recipientInfo && recipientInfo.error && (
+              {recipientInfo && recipientInfo.error && (
                 <div className="text-sm text-red-600">{recipientInfo.error}</div>
-              )} */}
+              )}
               
               {recipientInfo && !recipientInfo.error && (
                 <div className="space-y-1">
