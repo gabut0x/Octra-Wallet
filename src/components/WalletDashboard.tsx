@@ -86,12 +86,18 @@ export function WalletDashboard({
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   const [isRefreshingData, setIsRefreshingData] = useState(false);
   const [encryptedBalance, setEncryptedBalance] = useState<any>(null);
+  const [hasInitializedOverview, setHasInitializedOverview] = useState(false);
   const { toast } = useToast();
 
-  // Initial data fetch when wallet is connected
+  // Initial data fetch when wallet is connected or when switching to overview tab
   useEffect(() => {
     const fetchInitialData = async () => {
       if (!wallet) return;
+      
+      // Only fetch if we haven't initialized overview yet or if we're on overview tab
+      if (activeTab !== 'overview' && hasInitializedOverview) {
+        return;
+      }
 
       try {
         // Fetch balance and nonce
@@ -134,8 +140,12 @@ export function WalletDashboard({
       }
     };
 
-    fetchInitialData();
-  }, [wallet, toast]);
+    // Only fetch data when wallet changes or when switching to overview tab for the first time
+    if (activeTab === 'overview' && (!hasInitializedOverview || !balance)) {
+      fetchInitialData();
+      setHasInitializedOverview(true);
+    }
+  }, [wallet, activeTab, hasInitializedOverview, balance, toast]);
 
   // Function to refresh all wallet data
   const refreshWalletData = async () => {
@@ -387,6 +397,11 @@ export function WalletDashboard({
             type: tx.from?.toLowerCase() === wallet.address.toLowerCase() ? 'sent' : 'received'
           } as Transaction));
           setTransactions(transformedTxs);
+        }
+        
+        // Mark that we need to refresh overview data when user switches back
+        if (activeTab !== 'overview') {
+          setHasInitializedOverview(false);
         }
       } catch (error) {
         console.error('Failed to refresh data after transaction:', error);
