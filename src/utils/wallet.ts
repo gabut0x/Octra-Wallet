@@ -3,15 +3,33 @@ import { generateMnemonic, validateMnemonic, generateWalletFromMnemonic, bufferT
 import * as nacl from 'tweetnacl';
 
 export async function generateWallet(): Promise<Wallet> {
-  const mnemonic = generateMnemonic();
-  const walletData = await generateWalletFromMnemonic(mnemonic);
+  let attempts = 0;
+  const maxAttempts = 50;
   
-  return {
-    address: walletData.address,
-    privateKey: walletData.privateKey,
-    mnemonic: walletData.mnemonic,
-    publicKey: walletData.publicKey
-  };
+  while (attempts < maxAttempts) {
+    try {
+      const mnemonic = generateMnemonic();
+      const walletData = await generateWalletFromMnemonic(mnemonic);
+      
+      // Verify the address is exactly 47 characters
+      if (walletData.address.length === 47) {
+        return {
+          address: walletData.address,
+          privateKey: walletData.privateKey,
+          mnemonic: walletData.mnemonic,
+          publicKey: walletData.publicKey
+        };
+      }
+      
+      console.warn(`Generated address with invalid length: ${walletData.address.length}, retrying...`);
+      attempts++;
+    } catch (error) {
+      console.error('Error generating wallet:', error);
+      attempts++;
+    }
+  }
+  
+  throw new Error('Failed to generate valid wallet after maximum attempts');
 }
 
 export async function importWalletFromPrivateKey(privateKey: string): Promise<Wallet> {

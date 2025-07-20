@@ -96,22 +96,44 @@ export async function generateWalletFromMnemonic(mnemonic: string) {
     throw new Error('Invalid mnemonic phrase');
   }
 
-  const seed = mnemonicToSeed(mnemonic);
-  const { masterPrivateKey } = await deriveMasterKey(seed);
+  let attempts = 0;
+  const maxAttempts = 50;
   
-  const keyPair = nacl.sign.keyPair.fromSeed(masterPrivateKey);
-  const privateKey = Buffer.from(keyPair.secretKey.slice(0, 32));
-  const publicKey = Buffer.from(keyPair.publicKey);
-  const address = await createOctraAddress(publicKey);
+  while (attempts < maxAttempts) {
+    try {
+      const seed = mnemonicToSeed(mnemonic);
+      const { masterPrivateKey } = await deriveMasterKey(seed);
+      
+      // Add attempt number to ensure different keys on retry
+      const modifiedSeed = Buffer.concat([masterPrivateKey, Buffer.from([attempts])]);
+      const finalKey = Buffer.from(await crypto.subtle.digest('SHA-256', modifiedSeed)).slice(0, 32);
+      
+      const keyPair = nacl.sign.keyPair.fromSeed(finalKey);
+      const privateKey = Buffer.from(keyPair.secretKey.slice(0, 32));
+      const publicKey = Buffer.from(keyPair.publicKey);
+      const address = await createOctraAddress(publicKey);
+      
+      // Verify address length is exactly 47 characters
+      if (address.length === 47) {
+        return {
+          mnemonic,
+          privateKey: bufferToBase64(privateKey),
+          publicKey: bufferToHex(publicKey),
+          address,
+          balance: 0,
+          nonce: 0
+        };
+      }
+      
+      console.warn(`Generated address with length ${address.length}, retrying...`);
+      attempts++;
+    } catch (error) {
+      console.error('Error in wallet generation attempt:', error);
+      attempts++;
+    }
+  }
 
-  return {
-    mnemonic,
-    privateKey: bufferToBase64(privateKey),
-    publicKey: bufferToHex(publicKey),
-    address,
-    balance: 0,
-    nonce: 0
-  };
+  throw new Error('Failed to generate valid wallet from mnemonic after maximum attempts');
 }
 
 // New encryption functions for private balance

@@ -557,8 +557,11 @@ export function FileMultiSend({ wallet, balance, nonce, onBalanceUpdate, onNonce
                               → {recipient.resolvedAddress}
                             </div>
                           )}
-                          {recipient.error && (
-                            <div className="text-xs text-red-600 mt-1">{recipient.error}</div>
+                          {!recipient.isValid && recipient.error && (
+                            <div className="flex items-center gap-1 text-xs text-red-600 mt-1">
+                              <AlertTriangle className="h-3 w-3" />
+                              <span>{recipient.error}</span>
+                            </div>
                           )}
                         </div>
                         <div className="text-right">
