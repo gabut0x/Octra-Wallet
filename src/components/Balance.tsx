@@ -62,13 +62,21 @@ export function Balance({ wallet, balance, encryptedBalance: propEncryptedBalanc
         return;
       }
       
+      // Update public balance first
       onBalanceUpdate(balanceData.balance);
       
       // Fetch encrypted balance
       try {
         const encData = await fetchEncryptedBalance(wallet.address, wallet.privateKey);
         if (encData) {
-          setEncryptedBalance(encData);
+          // Update encrypted balance with fresh public balance data
+          const updatedEncData = {
+            ...encData,
+            public: balanceData.balance,
+            public_raw: Math.floor(balanceData.balance * 1_000_000),
+            total: balanceData.balance + encData.encrypted
+          };
+          setEncryptedBalance(updatedEncData);
         } else {
           // Reset encrypted balance to default values when fetch fails
           setEncryptedBalance({
@@ -102,7 +110,7 @@ export function Balance({ wallet, balance, encryptedBalance: propEncryptedBalanc
       if (balanceData.balance >= 0) {
         toast({
           title: "Balance Updated",
-          description: "Balance has been refreshed successfully",
+          description: "All balances have been refreshed successfully",
         });
       }
     } catch (error) {
@@ -146,11 +154,21 @@ export function Balance({ wallet, balance, encryptedBalance: propEncryptedBalanc
             });
             setPendingTransfers([]);
           } else {
+            // Update public balance immediately
+            onBalanceUpdate(balanceData.balance);
+            
             // RPC works, fetch encrypted balance
             return fetchEncryptedBalance(wallet.address, wallet.privateKey)
               .then(encData => {
                 if (encData) {
-                  setEncryptedBalance(encData);
+                  // Update encrypted balance with fresh public balance data
+                  const updatedEncData = {
+                    ...encData,
+                    public: balanceData.balance,
+                    public_raw: Math.floor(balanceData.balance * 1_000_000),
+                    total: balanceData.balance + encData.encrypted
+                  };
+                  setEncryptedBalance(updatedEncData);
                 } else {
                   setEncryptedBalance({
                     public: balanceData.balance,
@@ -185,7 +203,7 @@ export function Balance({ wallet, balance, encryptedBalance: propEncryptedBalanc
           setPendingTransfers([]);
         });
     }
-  }, [wallet]);
+  }, [wallet, onBalanceUpdate]);
 
   const copyToClipboard = async (text: string, label: string) => {
     try {

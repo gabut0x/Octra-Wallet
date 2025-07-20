@@ -152,6 +152,7 @@ export function WalletDashboard({
         throw new Error('RPC connection failed');
       }
       
+      // Update public balance immediately
       setBalance(balanceData.balance);
       setNonce(balanceData.nonce);
       
@@ -159,7 +160,14 @@ export function WalletDashboard({
       try {
         const encData = await fetchEncryptedBalance(wallet.address, wallet.privateKey);
         if (encData) {
-          setEncryptedBalance(encData);
+          // Update encrypted balance with fresh public balance data
+          const updatedEncData = {
+            ...encData,
+            public: balanceData.balance,
+            public_raw: Math.floor(balanceData.balance * 1_000_000),
+            total: balanceData.balance + encData.encrypted
+          };
+          setEncryptedBalance(updatedEncData);
         } else {
           // Reset encrypted balance to default values when fetch fails
           setEncryptedBalance({
@@ -201,7 +209,7 @@ export function WalletDashboard({
       
       toast({
         title: "Data Refreshed",
-        description: "Wallet data has been updated with new RPC provider",
+        description: "All wallet data has been updated successfully",
       });
     } catch (error) {
       console.error('Failed to refresh wallet data:', error);
