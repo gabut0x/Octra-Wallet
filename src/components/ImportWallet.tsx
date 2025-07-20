@@ -136,13 +136,13 @@ export function ImportWallet({ onWalletImported }: ImportWalletProps) {
             <Input
               id="private-key"
               type="password"
-              placeholder="Enter your private key (Base64 or Hex)"
+              placeholder="Enter your private key (Base64 format)"
               value={privateKey}
               onChange={(e) => setPrivateKey(e.target.value)}
                 className="font-mono text-sm"
             />
             <p className="text-sm text-muted-foreground">
-              Enter your private key in Base64 or Hex format (with or without 0x prefix)
+              Enter your private key in Base64 format (32 bytes encoded as base64)
             </p>
           </div>
 
