@@ -35,11 +35,29 @@ export function base58Encode(buffer: Buffer): string {
 }
 
 export async function createOctraAddress(publicKey: Buffer): Promise<string> {
-  const hash = Buffer.from(
-    await crypto.subtle.digest('SHA-256', publicKey)
-  );
-  const base58Hash = base58Encode(hash);
-  return "oct" + base58Hash;
+  let attempts = 0;
+  const maxAttempts = 100;
+  
+  while (attempts < maxAttempts) {
+    const hash = Buffer.from(
+      await crypto.subtle.digest('SHA-256', publicKey)
+    );
+    const base58Hash = base58Encode(hash);
+    const address = "oct" + base58Hash;
+    
+    // Ensure address is exactly 47 characters (valid Octra address length)
+    if (address.length === 47) {
+      return address;
+    }
+    
+    // If address is not 47 characters, regenerate with slight modification
+    attempts++;
+    const modifier = Buffer.from([attempts]);
+    const modifiedKey = Buffer.concat([publicKey, modifier]);
+    publicKey = Buffer.from(await crypto.subtle.digest('SHA-256', modifiedKey)).slice(0, 32);
+  }
+  
+  throw new Error('Failed to generate valid Octra address after maximum attempts');
 }
 
 export async function deriveMasterKey(seed: Buffer) {

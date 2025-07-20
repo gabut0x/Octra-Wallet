@@ -354,34 +354,25 @@ export function PrivateTransfer({ wallet, onTransactionSuccess }: PrivateTransfe
                   </div>
                 </div>
               )}
-              
-              {resolutionError && (
-                <div className="text-sm text-red-600">{resolutionError}</div>
-              )}
-              
-              {recipientInfo && recipientInfo.error && (
-                <div className="text-sm text-red-600">{recipientInfo.error}</div>
-              )}
-              
-              {recipientInfo && !recipientInfo.error && (
-                <div className="space-y-1">
-                  <div className="text-xs text-muted-foreground">
-                    Balance: {recipientInfo.balance || '0'} OCT
-                  </div>
-                  {!recipientInfo.has_public_key && (
-                    <div className="text-sm text-red-600">
-                      ⚠️ Recipient has no public key. They need to make a transaction first.
-                    </div>
-                  )}
-                </div>
-              )}
             </div>
           )}
           
-          {recipientInfo && !isCheckingRecipient && recipientInfo.error && (
+          {/* Show error messages for invalid input */}
+          {recipientAddress.trim() && !isResolving && !isCheckingRecipient && resolutionError && (
+            <div className="flex items-center gap-2 text-sm text-red-600">
+              <AlertTriangle className="h-4 w-4" />
+              <span>{resolutionError}</span>
+            </div>
+          )}
+          
+          {/* Show recipient info when address is valid */}
+          {recipientInfo && !isCheckingRecipient && !resolutionError && (
             <div className="space-y-2">
               {recipientInfo.error ? (
-                <div className="text-sm text-red-600">{recipientInfo.error}</div>
+                <div className="flex items-center gap-2 text-sm text-red-600">
+                  <AlertTriangle className="h-4 w-4" />
+                  <span>{recipientInfo.error}</span>
+                </div>
               ) : (
                 <div className="space-y-1">
                   <div className="flex items-center gap-2">
@@ -392,8 +383,9 @@ export function PrivateTransfer({ wallet, onTransactionSuccess }: PrivateTransfe
                     Balance: {recipientInfo.balance || '0'} OCT
                   </div>
                   {!recipientInfo.has_public_key && (
-                    <div className="text-sm text-red-600">
-                      ⚠️ Recipient has no public key. They need to make a transaction first.
+                    <div className="flex items-center gap-2 text-sm text-red-600">
+                      <AlertTriangle className="h-4 w-4" />
+                      <span>Recipient has no public key. They need to make a transaction first.</span>
                     </div>
                   )}
                 </div>

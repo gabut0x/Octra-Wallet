@@ -331,9 +331,14 @@ export function SendTransaction({ wallet, balance, nonce, onBalanceUpdate, onNon
                 </div>
               )}
               
-              {resolutionError && (
-                <div className="text-sm text-red-600">{resolutionError}</div>
-              )}
+            </div>
+          )}
+          
+          {/* Show error messages for invalid input */}
+          {recipientAddress.trim() && !isResolving && resolutionError && (
+            <div className="flex items-center gap-2 text-sm text-red-600">
+              <AlertTriangle className="h-4 w-4" />
+              <span>{resolutionError}</span>
             </div>
           )}
         </div>

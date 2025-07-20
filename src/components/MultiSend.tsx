@@ -475,10 +475,14 @@ export function MultiSend({ wallet, balance, nonce, onBalanceUpdate, onNonceUpda
                             </div>
                           </div>
                         )}
-                        
-                        {recipient.resolutionError && (
-                          <div className="text-xs text-red-600">{recipient.resolutionError}</div>
-                        )}
+                      </div>
+                    )}
+                    
+                    {/* Show error messages for invalid input */}
+                    {recipient.address.trim() && !recipient.isResolving && recipient.resolutionError && (
+                      <div className="flex items-center gap-2 text-xs text-red-600">
+                        <AlertTriangle className="h-4 w-4" />
+                        <span>{recipient.resolutionError}</span>
                       </div>
                     )}
                   </div>
